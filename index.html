@@ -66,7 +66,7 @@ ul.lista{list-style:none;margin:0;padding:0}
 .foglio h2{margin:0 0 8px;font-size:19px;font-weight:600}
 .foglio p{margin:0 0 12px;color:var(--tenue)}
 .foglio label{display:block;font-size:14px;color:var(--tenue);margin:10px 0 4px}
-.foglio input[type=text],.foglio input[type=tel]{width:100%;border:1px solid var(--linea);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff}
+.foglio input[type=text],.foglio input[type=tel],.foglio input[type=email]{width:100%;border:1px solid var(--linea);border-radius:10px;padding:11px 12px;font-size:16px;background:#fff}
 .scelte{display:flex;gap:8px}
 .scelte label{flex:1;margin:0;border:1px solid var(--linea);border-radius:10px;padding:10px;text-align:center;color:var(--inchiostro)}
 .scelte input{margin-right:6px}
@@ -171,9 +171,10 @@ function struttura(){
     '<p>Il compagno inquadra questo codice con la fotocamera del telefono e gli si apre lo stesso elenco. Fatelo dove il telefono prende.</p>' +
     '<div class="qr" id="qr"></div><button class="grande secondario" id="chiudi-qr">Chiudi</button></div></div>' +
     '<div class="velo" id="velo-agg"><div class="foglio"><h2>Famiglia non prenotata</h2>' +
-    '<label for="a-alunno">Ragazzo o ragazza: cognome e nome</label><input type="text" id="a-alunno" autocapitalize="words" autocomplete="off">' +
+    '<label for="a-alunno">Alunno/a: cognome e nome</label><input type="text" id="a-alunno" autocapitalize="words" autocomplete="off">' +
     '<label for="a-gen">Genitore: cognome e nome</label><input type="text" id="a-gen" autocapitalize="words" autocomplete="off">' +
     '<label for="a-tel">Telefono del genitore (se lo lascia)</label><input type="tel" id="a-tel" autocomplete="off">' +
+    '<label for="a-mail">Mail del genitore (se la lascia)</label><input type="email" id="a-mail" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">' +
     '<label>Turno</label><div class="scelte" id="a-turni"></div><div class="errore" id="a-err"></div>' +
     '<button class="grande aggiungi" id="a-salva">Salva: è presente</button><button class="grande secondario" id="a-annulla">Annulla</button></div></div>';
   document.getElementById('cerca').addEventListener('input', function(e){ filtro = e.target.value; disegnaLista(); });
@@ -262,6 +263,7 @@ function apriAggiungi(){
   document.getElementById('a-alunno').value = '';
   document.getElementById('a-gen').value = '';
   document.getElementById('a-tel').value = '';
+  document.getElementById('a-mail').value = '';
   document.getElementById('a-err').textContent = '';
   document.getElementById('a-turni').innerHTML = turni().map(function(x){
     return '<label><input type="radio" name="a-turno" value="' + esc(x.id) + '"' + (x.id === tab ? ' checked' : '') + '>' + esc(x.nome) + '</label>';
@@ -278,11 +280,11 @@ function bello(s){
 }
 function salvaAggiunta(){
   var a = bello(document.getElementById('a-alunno').value), g = bello(document.getElementById('a-gen').value),
-      t = pulito(document.getElementById('a-tel').value);
+      t = pulito(document.getElementById('a-tel').value), ml = pulito(document.getElementById('a-mail').value).replace(/\s/g, '').toLowerCase();
   var tr = document.querySelector('input[name=a-turno]:checked');
-  if (!a) { document.getElementById('a-err').textContent = 'Scrivi almeno cognome e nome del ragazzo o della ragazza.'; return; }
+  if (!a) { document.getElementById('a-err').textContent = 'Scrivi almeno cognome e nome dell\'alunno/a.'; return; }
   var turno = tr ? tr.value : tab;
-  metti({tipo: 'nuova', id: 'a' + casuale(12), turno: turno, alunno: a.slice(0, 80), genitore: g.slice(0, 80), telefono: t.slice(0, 30), presente: true});
+  metti({tipo: 'nuova', id: 'a' + casuale(12), turno: turno, alunno: a.slice(0, 80), genitore: g.slice(0, 80), telefono: t.slice(0, 30), mail: ml.slice(0, 120), presente: true});
   document.getElementById('velo-agg').classList.remove('aperto');
   tab = turno; scrivi('od_tab', tab); filtro = ''; document.getElementById('cerca').value = ''; disegnaLista();
 }
