@@ -1,4 +1,5 @@
 // Tiene la pagina delle presenze sul telefono, così si riapre anche senza rete (Aula Magna).
+// Con la rete prende sempre la versione nuova; senza rete (o con rete lentissima, oltre 4 secondi) usa quella salvata.
 var NOME = 'presenze-v1';
 var FILE = ['./', './index.html'];
 
@@ -15,17 +16,17 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== self.location.origin) return;
-  var pagina = /\/(index\.html)?$/.test(u.pathname);
-  if (!pagina && !/\/sw\.js$/.test(u.pathname)) return;
+  if (!/\/(index\.html)?$/.test(u.pathname)) return;
   e.respondWith(caches.open(NOME).then(function (c) {
-    var chiave = pagina ? './index.html' : e.request;
-    return c.match(chiave, { ignoreSearch: true }).then(function (salvata) {
-      var rete = fetch(e.request).then(function (r) {
-        if (r && r.ok) c.put(chiave, r.clone());
-        return r;
-      }).catch(function () { return null; });
-      if (salvata) { e.waitUntil(rete); return salvata; }
-      return rete.then(function (r) { return r || new Response('Senza rete', { status: 503 }); });
+    var rete = fetch(e.request, { cache: 'no-store' }).then(function (r) {
+      if (r && r.ok) c.put('./index.html', r.clone());
+      return r;
+    });
+    var attesa = new Promise(function (ok, no) { setTimeout(function () { no(new Error('lenta')); }, 4000); });
+    return Promise.race([rete, attesa]).catch(function () {
+      return c.match('./index.html').then(function (salvata) {
+        return salvata || rete.catch(function () { return new Response('Senza rete', { status: 503 }); });
+      });
     });
   }));
 });

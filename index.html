@@ -103,8 +103,11 @@ function ora(t){ var d = new Date(t); return d.getHours() + ':' + ('0' + d.getMi
 
 /* --- chi sono e quale Open Day: dall'indirizzo (QR) o dal telefono --- */
 function confDaIndirizzo(){
-  var h = location.hash.replace(/^#/, ''); if (!h) return null;
-  var p = {}; h.split('&').forEach(function(x){ var i = x.indexOf('='); if (i > 0) p[x.slice(0, i)] = decodeURIComponent(x.slice(i + 1)); });
+  // la chiave può arrivare dopo «?» (link mandati per messaggio) o dopo «#» (link vecchi)
+  var p = {};
+  [location.search.replace(/^\?/, ''), location.hash.replace(/^#/, '')].forEach(function(h){
+    h.split('&').forEach(function(x){ var i = x.indexOf('='); if (i > 0) p[x.slice(0, i)] = decodeURIComponent(x.slice(i + 1)); });
+  });
   return (p.e && p.k) ? {e: p.e, k: p.k} : null;
 }
 var conf = confDaIndirizzo();
@@ -285,7 +288,7 @@ function salvaAggiunta(){
 }
 
 function apriQr(){
-  var url = location.origin + location.pathname + '#e=' + encodeURIComponent(conf.e) + '&k=' + encodeURIComponent(conf.k);
+  var url = location.origin + location.pathname + '?e=' + encodeURIComponent(conf.e) + '&k=' + encodeURIComponent(conf.k);
   try { var q = qrcode(0, 'M'); q.addData(url); q.make();
     document.getElementById('qr').innerHTML = q.createSvgTag({cellSize: 6, margin: 3, scalable: true});
   } catch(e) { document.getElementById('qr').textContent = 'Non riesco a disegnare il codice.'; }
@@ -298,7 +301,7 @@ function programma(){ clearTimeout(timer); timer = setTimeout(sincronizza, st.co
 
 function finito(){
   togliChiave(CHIAVE_STATO); togliChiave('od_conf'); togliChiave('od_tab');
-  if (location.hash) history.replaceState(null, '', location.pathname);
+  if (location.hash || location.search) history.replaceState(null, '', location.pathname);
   clearTimeout(timer); timer = null; st = null;
   schermo('L\'Open Day è finito', 'L\'elenco è stato cancellato da questo telefono. Grazie per l\'aiuto!');
 }
