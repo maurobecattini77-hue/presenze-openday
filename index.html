@@ -252,7 +252,6 @@ function clicLista(e){
     if (confirm('Eliminare dall\'elenco ' + f.alunno + '? Serve solo se è stata aggiunta per sbaglio.')) metti({tipo: 'togli', id: id});
     return;
   }
-  if (f.presente && !confirm('Togliere la presenza di ' + f.alunno + '?')) return;
   metti({tipo: 'segno', id: id, presente: !f.presente});
 }
 
