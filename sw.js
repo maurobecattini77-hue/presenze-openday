@@ -15,8 +15,10 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== self.location.origin) return;
+  var pagina = /\/(index\.html)?$/.test(u.pathname);
+  if (!pagina && !/\/sw\.js$/.test(u.pathname)) return;
   e.respondWith(caches.open(NOME).then(function (c) {
-    var chiave = e.request.mode === 'navigate' ? './index.html' : e.request;
+    var chiave = pagina ? './index.html' : e.request;
     return c.match(chiave, { ignoreSearch: true }).then(function (salvata) {
       var rete = fetch(e.request).then(function (r) {
         if (r && r.ok) c.put(chiave, r.clone());
